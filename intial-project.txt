@@ -1,0 +1,290 @@
+# Dog Walk Tracker PWA
+
+A Progressive Web App to plan and track dog walks in real time. Features:
+
+* **Manual route drawing** with on-the-fly distance measurement.
+* **Real‑time GPS tracking** of your actual walk path.
+* **Mobile‑friendly**, responsive design with dog‑themed colors and paw icons.
+* **Offline support** via Service Worker (cache assets).
+
+---
+
+## 📂 Repository Structure
+
+```
+/ (root)
+├── index.html
+├── style.css
+├── app.js
+├── manifest.json
+├── service-worker.js
+├── paw-icon.png           ← 192×192 px paw icon
+├── paw-icon-512.png       ← 512×512 px paw icon
+└── README.md
+```
+
+---
+
+## 📖 README.md
+
+````markdown
+# Dog Walk Tracker PWA
+
+A PWA to plan and track dog walks with real‑time GPS and manual route drawing.
+
+## Setup
+
+1. **Clone** the repo:
+   ```bash
+   git clone https://github.com/yourusername/dog-walk-tracker.git
+   cd dog-walk-tracker
+````
+
+2. **Serve** locally:
+
+   * Using VSCode Live Server, *or*
+   * Install a static server: `npm install -g serve`, then `serve`.
+3. Open the URL shown (e.g., [http://localhost:5000](http://localhost:5000)).
+4. **Deploy** on GitHub Pages:
+
+   * Push to `main` branch.
+   * In repo Settings → Pages → set Source to `main`/`/ (root)`.
+
+## TODO / Future Improvements
+
+* **Auto‑generate circular route** by target distance using a routing API (e.g., OpenRouteService).
+* Allow **address search autocomplete** instead of plain text input.
+* Persist walk history in **LocalStorage** or a **backend**.
+* Polish offline support (fallback page).
+* Replace placeholder paw icons.
+
+````
+
+---
+
+## 📄 index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Dog Walk Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="controls">
+    <input type="text" id="startLocation" placeholder="Enter start address or lat,lng" />
+    <button id="locateBtn">Set Start</button>
+    <input type="number" id="walkDistance" placeholder="Desired distance (m)" />
+    <button id="startPlanBtn">Plan Walk (draw route)</button>
+    <button id="startTrackBtn">Start Tracking</button>
+    <button id="stopTrackBtn" disabled>Stop Tracking</button>
+    <div id="stats"></div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+  <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
+````
+
+---
+
+## 🎨 style.css
+
+```css
+/* Fullscreen map */
+html, body { height:100%; margin:0; padding:0; }
+#map { height:100%; }
+
+/* Control panel styling */
+#controls {
+  position:absolute;
+  top:10px; left:10px; right:10px;
+  background: rgba(210,180,140,0.9);  /* tan */
+  padding:10px; border-radius:8px;
+  font-family: sans-serif;
+  z-index:1000;
+}
+#controls input, #controls button {
+  margin:4px; padding:8px;
+  border:1px solid #A0522D;   /* sienna */
+  border-radius:4px;
+}
+#controls button {
+  background: #A0522D;
+  color: white;
+}
+#stats {
+  margin-top:8px;
+  font-weight:bold;
+  color: #4B2E05;
+}
+```
+
+---
+
+## ⚙️ app.js
+
+```javascript
+// Initialize map
+const map = L.map('map').setView([41.9, -87.7], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Feature group for drawing
+const drawnItems = new L.FeatureGroup().addTo(map);
+const drawControl = new L.Control.Draw({
+  draw: { polyline: true, polygon: false, circle: false, rectangle: false, marker: false },
+  edit: { featureGroup: drawnItems }
+});
+map.addControl(drawControl);
+
+// State variables
+let plannedRoute = null;
+let plannedDistance = 0;
+let trackLine = null;
+let trackDistance = 0;
+let trackLatLngs = [];
+let watchId = null;
+
+// Handle manual route drawing
+map.on(L.Draw.Event.CREATED, e => {
+  if (plannedRoute) drawnItems.removeLayer(plannedRoute);
+  plannedRoute = e.layer;
+  drawnItems.addLayer(plannedRoute);
+  // Measure in meters
+  plannedDistance = turf.length(plannedRoute.toGeoJSON(), { units: 'meters' });
+  updateStats();
+});
+
+// Geocoding (Nominatim)
+async function geocode(query) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data && data[0]) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+  return null;
+}
+
+// Set start location
+document.getElementById('locateBtn').addEventListener('click', async () => {
+  const q = document.getElementById('startLocation').value;
+  let coords;
+  if (q.includes(',')) coords = q.split(',').map(Number);
+  else coords = await geocode(q);
+  if (!coords) { alert('Location not found'); return; }
+  map.setView(coords, 15);
+  L.marker(coords, {
+    icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
+  }).addTo(map);
+});
+
+// Start tracking actual walk
+document.getElementById('startTrackBtn').addEventListener('click', () => {
+  if (!navigator.geolocation) return alert('Geolocation not supported.');
+  trackDistance = 0;
+  trackLatLngs = [];
+  if (trackLine) map.removeLayer(trackLine);
+  trackLine = L.polyline([], { color: '#A0522D' }).addTo(map);
+  document.getElementById('stopTrackBtn').disabled = false;
+  watchId = navigator.geolocation.watchPosition(onPosition, err => console.error(err), {
+    enableHighAccuracy: true,
+    maximumAge: 1000,
+    timeout: 10000
+  });
+});
+
+// Stop tracking
+document.getElementById('stopTrackBtn').addEventListener('click', () => {
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  document.getElementById('stopTrackBtn').disabled = true;
+});
+
+// Called on each GPS update
+function onPosition(pos) {
+  const latlng = [pos.coords.latitude, pos.coords.longitude];
+  trackLatLngs.push(latlng);
+  trackLine.setLatLngs(trackLatLngs);
+  if (trackLatLngs.length > 1) {
+    const prev = trackLatLngs[trackLatLngs.length - 2];
+    // measure each segment in meters
+    const seg = turf.lineString([prev, latlng]);
+    trackDistance += turf.length(seg, { units: 'meters' });
+  }
+  updateStats();
+}
+
+// Update stats display
+function updateStats() {
+  let txt = `Tracked: ${trackDistance.toFixed(1)} m`;
+  if (plannedDistance) {
+    const pct = (trackDistance / plannedDistance * 100).toFixed(1);
+    txt += ` / Planned: ${plannedDistance.toFixed(1)} m (${pct}% done)`;
+  }
+  document.getElementById('stats').textContent = txt;
+}
+
+// TODO: Auto‑generate route by distance requires server‑side logic or routing API - implement later
+```
+
+---
+
+## 🛠️ manifest.json
+
+```json
+{
+  "name": "Dog Walk Tracker",
+  "short_name": "WalkTracker",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#D2B48C",
+  "theme_color": "#A0522D",
+  "icons": [
+    { "src": "paw-icon.png",   "sizes": "192x192", "type": "image/png" },
+    { "src": "paw-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+```
+
+---
+
+## ⚙️ service-worker.js
+
+```javascript
+const CACHE_NAME = 'dog-walk-cache-v1';
+const URLS_TO_CACHE = [
+  '/', 'index.html', 'style.css', 'app.js', 'manifest.json',
+  'https://unpkg.com/leaflet/dist/leaflet.css',
+  'https://unpkg.com/leaflet/dist/leaflet.js',
+  'https://unpkg.com/leaflet-draw/dist/leaflet.draw.css',
+  'https://unpkg.com/leaflet-draw/dist/leaflet.draw.js',
+  'https://unpkg.com/@turf/turf/turf.min.js'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
+  );
+});
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(resp => resp || fetch(event.request))
+  );
+});
+```

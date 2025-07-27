@@ -1,0 +1,12 @@
+{
+  "name": "Dog Walk Tracker",
+  "short_name": "WalkTracker",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#D2B48C",
+  "theme_color": "#A0522D",
+  "icons": [
+    { "src": "paw-icon.png",   "sizes": "192x192", "type": "image/png" },
+    { "src": "paw-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
