@@ -20,6 +20,7 @@ let trackDistance = 0;
 let trackLatLngs = [];
 let watchId = null;
 let startCoords = null;
+let trackingIndicator = null;
 let walkPreference = 'scenic';
 let autoRoutes = [];
 let autoRouteIndex = -1;
@@ -171,6 +172,10 @@ document.getElementById('startTrackBtn').addEventListener('click', () => {
   trackLatLngs = [];
   if (trackLine) map.removeLayer(trackLine);
   trackLine = L.polyline([], { color: '#A0522D' }).addTo(map);
+  if (trackingIndicator) {
+    map.removeLayer(trackingIndicator);
+    trackingIndicator = null;
+  }
   document.getElementById('stopTrackBtn').disabled = false;
   document.getElementById('pauseTrackBtn').disabled = false;
   document.getElementById('resumeTrackBtn').disabled = true;
@@ -185,6 +190,10 @@ document.getElementById('startTrackBtn').addEventListener('click', () => {
 // Stop tracking
 document.getElementById('stopTrackBtn').addEventListener('click', () => {
   if (watchId) navigator.geolocation.clearWatch(watchId);
+  if (trackingIndicator) {
+    map.removeLayer(trackingIndicator);
+    trackingIndicator = null;
+  }
   document.getElementById('stopTrackBtn').disabled = true;
   document.getElementById('pauseTrackBtn').disabled = true;
   document.getElementById('resumeTrackBtn').disabled = true;
@@ -243,6 +252,10 @@ document.getElementById('clearWalkBtn').addEventListener('click', () => {
     map.removeLayer(trackLine);
     trackLine = null;
   }
+  if (trackingIndicator) {
+    map.removeLayer(trackingIndicator);
+    trackingIndicator = null;
+  }
   plannedDistance = 0;
   trackDistance = 0;
   trackLatLngs = [];
@@ -263,6 +276,13 @@ document.getElementById('clearWalkBtn').addEventListener('click', () => {
 // Called on each GPS update
 function onPosition(pos) {
   const latlng = [pos.coords.latitude, pos.coords.longitude];
+  if (!trackingIndicator) {
+    trackingIndicator = L.marker(latlng, {
+      icon: L.divIcon({ className: 'tracking-indicator' })
+    }).addTo(map);
+  } else {
+    trackingIndicator.setLatLng(latlng);
+  }
   trackLatLngs.push(latlng);
   trackLine.setLatLngs(trackLatLngs);
   if (trackLatLngs.length > 1) {
