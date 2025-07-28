@@ -21,7 +21,10 @@ let trackLatLngs = [];
 let watchId = null;
 let startCoords = null;
 let walkPreference = 'scenic';
-const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjhhNWZmN2ZhZWIxZTRlNjA4YjA0NmE2ZGFhMWE5ZDY5IiwiaCI6Im11cm11cjY0In0=';
+
+if (typeof ORS_API_KEY === 'undefined' || !ORS_API_KEY) {
+  alert('Missing OpenRouteService API key. Set ORS_API_KEY in config.js');
+}
 
 document.getElementById('walkPreference').addEventListener('change', e => {
   walkPreference = e.target.value;
