@@ -22,6 +22,36 @@ let watchId = null;
 let startCoords = null;
 const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjhhNWZmN2ZhZWIxZTRlNjA4YjA0NmE2ZGFhMWE5ZDY5IiwiaCI6Im11cm11cjY0In0=';
 
+function convertToMeters(distance, unit) {
+  switch (unit) {
+    case 'kilometers':
+      return distance * 1000;
+    case 'miles':
+      return distance * 1609.34;
+    case 'feet':
+      return distance * 0.3048;
+    case 'yards':
+      return distance * 0.9144;
+    default:
+      return distance;
+  }
+}
+
+function convertFromMeters(distance, unit) {
+  switch (unit) {
+    case 'kilometers':
+      return distance / 1000;
+    case 'miles':
+      return distance / 1609.34;
+    case 'feet':
+      return distance / 0.3048;
+    case 'yards':
+      return distance / 0.9144;
+    default:
+      return distance;
+  }
+}
+
 // Automatically center map on user's current location if permission granted
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(pos => {
@@ -82,10 +112,12 @@ document.getElementById('startPlanBtn').addEventListener('click', () => {
 
 // Auto-plan route using OpenRouteService
 document.getElementById('autoPlanBtn').addEventListener('click', async () => {
-  const dist = parseFloat(document.getElementById('walkDistance').value);
+  const distInput = parseFloat(document.getElementById('walkDistance').value);
+  const unit = document.getElementById('distanceUnit').value;
   if (!startCoords) { alert('Set start location first'); return; }
-  if (!dist) { alert('Enter desired distance'); return; }
-  await autoPlanRoute(startCoords, dist);
+  if (!distInput) { alert('Enter desired distance'); return; }
+  const distMeters = convertToMeters(distInput, unit);
+  await autoPlanRoute(startCoords, distMeters);
 });
 
 // Start tracking actual walk
@@ -125,10 +157,13 @@ function onPosition(pos) {
 
 // Update stats display
 function updateStats() {
-  let txt = `Tracked: ${trackDistance.toFixed(1)} m`;
+  const unit = document.getElementById('distanceUnit').value;
+  const tracked = convertFromMeters(trackDistance, unit).toFixed(1);
+  let txt = `Tracked: ${tracked} ${unit}`;
   if (plannedDistance) {
+    const planned = convertFromMeters(plannedDistance, unit).toFixed(1);
     const pct = (trackDistance / plannedDistance * 100).toFixed(1);
-    txt += ` / Planned: ${plannedDistance.toFixed(1)} m (${pct}% done)`;
+    txt += ` / Planned: ${planned} ${unit} (${pct}% done)`;
   }
   document.getElementById('stats').textContent = txt;
 }
