@@ -20,7 +20,7 @@ let trackDistance = 0;
 let trackLatLngs = [];
 let watchId = null;
 let startCoords = null;
-const ORS_API_KEY = 'YOUR_API_KEY';
+const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjhhNWZmN2ZhZWIxZTRlNjA4YjA0NmE2ZGFhMWE5ZDY5IiwiaCI6Im11cm11cjY0In0=';
 
 // Handle manual route drawing
 map.on(L.Draw.Event.CREATED, e => {
