@@ -13,7 +13,7 @@ body { font-family: 'Baloo 2', sans-serif; }
   font-family: 'Baloo 2', sans-serif;
   z-index:1000;
 }
-#controls input, #controls button {
+#controls input, #controls button, #controls select {
   margin:4px; padding:8px;
   border:1px solid #A0522D;   /* sienna */
   border-radius:4px;

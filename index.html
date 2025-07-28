@@ -14,7 +14,14 @@
   <div id="controls">
     <input type="text" id="startLocation" placeholder="Enter start address or lat,lng" />
     <button id="locateBtn">Set Start</button>
-    <input type="number" id="walkDistance" placeholder="Desired distance (m)" />
+    <input type="number" id="walkDistance" placeholder="Desired distance" />
+    <select id="distanceUnit">
+      <option value="meters">m</option>
+      <option value="kilometers">km</option>
+      <option value="miles">mi</option>
+      <option value="feet">ft</option>
+      <option value="yards">yd</option>
+    </select>
     <button id="startPlanBtn">Plan Walk (draw route)</button>
     <button id="autoPlanBtn">Plan Route for Me</button>
     <button id="startTrackBtn">Start Tracking</button>
