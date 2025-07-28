@@ -383,3 +383,8 @@ async function autoPlanRoute(start, targetMeters, preference) {
 }
 
 // Auto-planning now available using OpenRouteService
+
+// Mobile menu toggle
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('controls').classList.toggle('hidden');
+});

@@ -36,6 +36,7 @@ A PWA to plan and track dog walks with real-time GPS and manual route drawing.
 8. Click **Start Tracking** to record your walk in real time. A pulsating dot shows your current location while tracking. Use **Pause** and **Resume** to temporarily stop or continue tracking. Use **Stop Tracking** to finish recording.
 9. Click **Save Walk** to store the tracked route. Use **Load Walk** to display the last saved route.
 10. Use **Clear Walk** to remove any planned or tracked route and reset the stats.
+11. On small screens tap the **☰** button to show or hide the controls.
 
 ## TODO / Future Improvements
 
