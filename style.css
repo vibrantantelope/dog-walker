@@ -21,6 +21,17 @@ body { font-family: 'Baloo 2', sans-serif; }
 #controls button {
   background: #A0522D;
   color: white;
+  transition: background 0.15s, transform 0.1s;
+}
+
+#controls button:hover {
+  background: #C8753D;
+  transform: translateY(-2px);
+}
+
+#controls button:active {
+  transform: scale(0.97);
+=======
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
