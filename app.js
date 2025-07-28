@@ -141,6 +141,27 @@ document.getElementById('stopTrackBtn').addEventListener('click', () => {
   document.getElementById('stopTrackBtn').disabled = true;
 });
 
+// Clear current walk data and map overlays
+document.getElementById('clearWalkBtn').addEventListener('click', () => {
+  if (plannedRoute) {
+    drawnItems.removeLayer(plannedRoute);
+    plannedRoute = null;
+  }
+  if (trackLine) {
+    map.removeLayer(trackLine);
+    trackLine = null;
+  }
+  plannedDistance = 0;
+  trackDistance = 0;
+  trackLatLngs = [];
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+  document.getElementById('stopTrackBtn').disabled = true;
+  updateStats();
+});
+
 // Called on each GPS update
 function onPosition(pos) {
   const latlng = [pos.coords.latitude, pos.coords.longitude];
