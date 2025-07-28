@@ -21,6 +21,8 @@ let trackLatLngs = [];
 let watchId = null;
 let startCoords = null;
 let walkPreference = 'scenic';
+let autoRoutes = [];
+let autoRouteIndex = -1;
 
 if (typeof ORS_API_KEY === 'undefined' || !ORS_API_KEY) {
   alert('Missing OpenRouteService API key. Set ORS_API_KEY in config.js');
@@ -58,6 +60,23 @@ function convertFromMeters(distance, unit) {
     default:
       return distance;
   }
+}
+
+function displayAutoRoute(index) {
+  if (index < 0 || index >= autoRoutes.length) return;
+  const { feature, length } = autoRoutes[index];
+  if (plannedRoute) drawnItems.removeLayer(plannedRoute);
+  plannedRoute = L.geoJSON(feature).addTo(drawnItems);
+  plannedDistance = length;
+  autoRouteIndex = index;
+  updateStats();
+  map.fitBounds(plannedRoute.getBounds());
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  document.getElementById('prevRouteBtn').disabled = autoRouteIndex <= 0;
+  document.getElementById('nextRouteBtn').disabled = autoRouteIndex >= autoRoutes.length - 1;
 }
 
 // Automatically center map on user's current location if permission granted
@@ -114,6 +133,9 @@ document.getElementById('startPlanBtn').addEventListener('click', () => {
     plannedDistance = 0;
     updateStats();
   }
+  autoRoutes = [];
+  autoRouteIndex = -1;
+  updateNavButtons();
   walkPreference = document.getElementById('walkPreference').value;
   // Start a new drawing session using Leaflet Draw
   new L.Draw.Polyline(map).enable();
@@ -127,7 +149,19 @@ document.getElementById('autoPlanBtn').addEventListener('click', async () => {
   if (!startCoords) { alert('Set start location first'); return; }
   if (!distInput) { alert('Enter desired distance'); return; }
   const distMeters = convertToMeters(distInput, unit);
-  await autoPlanRoute(startCoords, distMeters, walkPreference);
+  const result = await autoPlanRoute(startCoords, distMeters, walkPreference);
+  if (result) {
+    autoRoutes.push(result);
+    displayAutoRoute(autoRoutes.length - 1);
+  }
+});
+
+document.getElementById('prevRouteBtn').addEventListener('click', () => {
+  if (autoRouteIndex > 0) displayAutoRoute(autoRouteIndex - 1);
+});
+
+document.getElementById('nextRouteBtn').addEventListener('click', () => {
+  if (autoRouteIndex < autoRoutes.length - 1) displayAutoRoute(autoRouteIndex + 1);
 });
 
 // Start tracking actual walk
@@ -216,6 +250,9 @@ document.getElementById('clearWalkBtn').addEventListener('click', () => {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
+  autoRoutes = [];
+  autoRouteIndex = -1;
+  updateNavButtons();
   document.getElementById('stopTrackBtn').disabled = true;
   document.getElementById('pauseTrackBtn').disabled = true;
   document.getElementById('resumeTrackBtn').disabled = true;
@@ -255,7 +292,7 @@ function updateStats() {
 async function autoPlanRoute(start, targetMeters, preference) {
   const url = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson';
   console.log('Planning with preference:', preference);
-  const requestRoute = async len => {
+  const requestRoute = async (len, seed) => {
     const points = preference === 'shortest' ? 3 : 5;
     const body = {
       coordinates: [[start[1], start[0]]],
@@ -263,7 +300,8 @@ async function autoPlanRoute(start, targetMeters, preference) {
       options: {
         round_trip: {
           length: len,
-          points
+          points,
+          seed
         },
         avoid_features: ['steps', 'fords']
       }
@@ -281,23 +319,21 @@ async function autoPlanRoute(start, targetMeters, preference) {
   };
 
   try {
-    let data = await requestRoute(targetMeters);
+    const seed = Math.floor(Math.random() * 1000000);
+    let data = await requestRoute(targetMeters, seed);
     let feature = data.features[0];
     let len = turf.length(feature, { units: 'meters' });
     if (Math.abs(len - targetMeters) > 322) {
       const adjust = targetMeters + (targetMeters - len);
-      data = await requestRoute(adjust);
+      data = await requestRoute(adjust, seed);
       feature = data.features[0];
       len = turf.length(feature, { units: 'meters' });
     }
-    if (plannedRoute) drawnItems.removeLayer(plannedRoute);
-    plannedRoute = L.geoJSON(feature).addTo(drawnItems);
-    plannedDistance = len;
-    updateStats();
-    map.fitBounds(plannedRoute.getBounds());
+    return { feature, length: len, seed };
   } catch (err) {
     console.error(err);
     alert('Could not auto-plan route');
+    return null;
   }
 }
 
