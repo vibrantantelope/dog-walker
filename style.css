@@ -1,5 +1,7 @@
 /* Fullscreen map */
 html, body { height:100%; margin:0; padding:0; }
+/* Use Baloo 2 from Google Fonts, fallback to sans-serif */
+body { font-family: 'Baloo 2', sans-serif; }
 #map { height:100%; }
 
 /* Control panel styling */
@@ -8,7 +10,7 @@ html, body { height:100%; margin:0; padding:0; }
   top:10px; left:10px; right:10px;
   background: rgba(210,180,140,0.9);  /* tan */
   padding:10px; border-radius:8px;
-  font-family: sans-serif;
+  font-family: 'Baloo 2', sans-serif;
   z-index:1000;
 }
 #controls input, #controls button {
@@ -29,6 +31,16 @@ html, body { height:100%; margin:0; padding:0; }
 
 #controls button:active {
   transform: scale(0.97);
+=======
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+#controls button:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+#controls button:active {
+  transform: scale(0.95);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 #stats {
   margin-top:8px;
