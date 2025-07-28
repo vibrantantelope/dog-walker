@@ -31,6 +31,11 @@ body { font-family: 'Baloo 2', sans-serif; }
   transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
 }
 
+#prevRouteBtn, #nextRouteBtn {
+  min-width: 32px;
+  font-weight: bold;
+}
+
 #controls button:hover {
   background: #C8753D;
   transform: translateY(-2px);
