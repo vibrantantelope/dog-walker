@@ -138,6 +138,9 @@ document.getElementById('startTrackBtn').addEventListener('click', () => {
   if (trackLine) map.removeLayer(trackLine);
   trackLine = L.polyline([], { color: '#A0522D' }).addTo(map);
   document.getElementById('stopTrackBtn').disabled = false;
+  document.getElementById('pauseTrackBtn').disabled = false;
+  document.getElementById('resumeTrackBtn').disabled = true;
+  document.getElementById('saveWalkBtn').disabled = true;
   watchId = navigator.geolocation.watchPosition(onPosition, err => console.error(err), {
     enableHighAccuracy: true,
     maximumAge: 1000,
@@ -149,6 +152,51 @@ document.getElementById('startTrackBtn').addEventListener('click', () => {
 document.getElementById('stopTrackBtn').addEventListener('click', () => {
   if (watchId) navigator.geolocation.clearWatch(watchId);
   document.getElementById('stopTrackBtn').disabled = true;
+  document.getElementById('pauseTrackBtn').disabled = true;
+  document.getElementById('resumeTrackBtn').disabled = true;
+  document.getElementById('saveWalkBtn').disabled = false;
+});
+
+// Pause tracking without clearing the line
+document.getElementById('pauseTrackBtn').addEventListener('click', () => {
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    document.getElementById('pauseTrackBtn').disabled = true;
+    document.getElementById('resumeTrackBtn').disabled = false;
+  }
+});
+
+// Resume tracking after a pause
+document.getElementById('resumeTrackBtn').addEventListener('click', () => {
+  if (!navigator.geolocation || watchId) return;
+  watchId = navigator.geolocation.watchPosition(onPosition, err => console.error(err), {
+    enableHighAccuracy: true,
+    maximumAge: 1000,
+    timeout: 10000
+  });
+  document.getElementById('pauseTrackBtn').disabled = false;
+  document.getElementById('resumeTrackBtn').disabled = true;
+});
+
+// Save the most recent track to localStorage
+document.getElementById('saveWalkBtn').addEventListener('click', () => {
+  if (trackLatLngs.length) {
+    localStorage.setItem('lastWalk', JSON.stringify(trackLatLngs));
+    alert('Walk saved');
+  } else {
+    alert('No walk to save');
+  }
+});
+
+// Load the last saved walk from localStorage
+document.getElementById('loadWalkBtn').addEventListener('click', () => {
+  const data = localStorage.getItem('lastWalk');
+  if (!data) return alert('No saved walk');
+  const coords = JSON.parse(data);
+  if (trackLine) map.removeLayer(trackLine);
+  trackLine = L.polyline(coords, { color: '#A0522D' }).addTo(map);
+  map.fitBounds(trackLine.getBounds());
 });
 
 // Clear current walk data and map overlays
@@ -169,6 +217,9 @@ document.getElementById('clearWalkBtn').addEventListener('click', () => {
     watchId = null;
   }
   document.getElementById('stopTrackBtn').disabled = true;
+  document.getElementById('pauseTrackBtn').disabled = true;
+  document.getElementById('resumeTrackBtn').disabled = true;
+  document.getElementById('saveWalkBtn').disabled = true;
   updateStats();
 });
 
