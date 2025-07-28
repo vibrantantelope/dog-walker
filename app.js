@@ -52,6 +52,19 @@ document.getElementById('locateBtn').addEventListener('click', async () => {
   }).addTo(map);
 });
 
+// Begin planning a walk by drawing a polyline
+document.getElementById('startPlanBtn').addEventListener('click', () => {
+  // Clear any existing planned route
+  if (plannedRoute) {
+    drawnItems.removeLayer(plannedRoute);
+    plannedRoute = null;
+    plannedDistance = 0;
+    updateStats();
+  }
+  // Start a new drawing session using Leaflet Draw
+  new L.Draw.Polyline(map).enable();
+});
+
 // Start tracking actual walk
 document.getElementById('startTrackBtn').addEventListener('click', () => {
   if (!navigator.geolocation) return alert('Geolocation not supported.');
