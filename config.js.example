@@ -1,0 +1,2 @@
+// Rename this file to config.js and set your OpenRouteService API key
+const ORS_API_KEY = '';
