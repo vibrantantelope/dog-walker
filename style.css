@@ -19,6 +19,16 @@ html, body { height:100%; margin:0; padding:0; }
 #controls button {
   background: #A0522D;
   color: white;
+  transition: background 0.15s, transform 0.1s;
+}
+
+#controls button:hover {
+  background: #C8753D;
+  transform: translateY(-2px);
+}
+
+#controls button:active {
+  transform: scale(0.97);
 }
 #stats {
   margin-top:8px;
