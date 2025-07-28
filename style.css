@@ -1,5 +1,7 @@
 /* Fullscreen map */
 html, body { height:100%; margin:0; padding:0; }
+/* Use Baloo 2 from Google Fonts, fallback to sans-serif */
+body { font-family: 'Baloo 2', sans-serif; }
 #map { height:100%; }
 
 /* Control panel styling */
@@ -8,7 +10,7 @@ html, body { height:100%; margin:0; padding:0; }
   top:10px; left:10px; right:10px;
   background: rgba(210,180,140,0.9);  /* tan */
   padding:10px; border-radius:8px;
-  font-family: sans-serif;
+  font-family: 'Baloo 2', sans-serif;
   z-index:1000;
 }
 #controls input, #controls button {
