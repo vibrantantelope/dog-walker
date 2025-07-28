@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dog-walk-cache-v1';
+const CACHE_NAME = 'dog-walk-cache-v2';
 const URLS_TO_CACHE = [
   '/', 'index.html', 'style.css', 'app.js', 'manifest.json',
   'https://unpkg.com/leaflet/dist/leaflet.css',
