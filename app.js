@@ -20,7 +20,12 @@ let trackDistance = 0;
 let trackLatLngs = [];
 let watchId = null;
 let startCoords = null;
+let walkPreference = 'scenic';
 const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjhhNWZmN2ZhZWIxZTRlNjA4YjA0NmE2ZGFhMWE5ZDY5IiwiaCI6Im11cm11cjY0In0=';
+
+document.getElementById('walkPreference').addEventListener('change', e => {
+  walkPreference = e.target.value;
+});
 
 function convertToMeters(distance, unit) {
   switch (unit) {
@@ -106,6 +111,7 @@ document.getElementById('startPlanBtn').addEventListener('click', () => {
     plannedDistance = 0;
     updateStats();
   }
+  walkPreference = document.getElementById('walkPreference').value;
   // Start a new drawing session using Leaflet Draw
   new L.Draw.Polyline(map).enable();
 });
@@ -114,10 +120,11 @@ document.getElementById('startPlanBtn').addEventListener('click', () => {
 document.getElementById('autoPlanBtn').addEventListener('click', async () => {
   const distInput = parseFloat(document.getElementById('walkDistance').value);
   const unit = document.getElementById('distanceUnit').value;
+  walkPreference = document.getElementById('walkPreference').value;
   if (!startCoords) { alert('Set start location first'); return; }
   if (!distInput) { alert('Enter desired distance'); return; }
   const distMeters = convertToMeters(distInput, unit);
-  await autoPlanRoute(startCoords, distMeters);
+  await autoPlanRoute(startCoords, distMeters, walkPreference);
 });
 
 // Start tracking actual walk
@@ -164,13 +171,15 @@ function updateStats() {
     const planned = convertFromMeters(plannedDistance, unit).toFixed(1);
     const pct = (trackDistance / plannedDistance * 100).toFixed(1);
     txt += ` / Planned: ${planned} ${unit} (${pct}% done)`;
+    txt += ` | Pref: ${walkPreference}`;
   }
   document.getElementById('stats').textContent = txt;
 }
 
 // Generate a circular route automatically
-async function autoPlanRoute(start, targetMeters) {
+async function autoPlanRoute(start, targetMeters, preference) {
   const url = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson';
+  console.log('Planning with preference:', preference);
   const requestRoute = async len => {
     const body = {
       coordinates: [[start[1], start[0]]],
