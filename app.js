@@ -1,8 +1,21 @@
-// Initialize map
+// Initialize map and basemap layers
 const map = L.map('map').setView([41.9, -87.7], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+const baseLayers = {
+  street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }),
+  satellite: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Tiles © Esri' }
+  ),
+  hybrid: L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}.png', {
+    attribution: '© Stamen'
+  }),
+  terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenTopoMap (CC-BY-SA)'
+  })
+};
+let currentBaseLayer = baseLayers.street.addTo(map);
 
 // Feature group for drawing
 const drawnItems = new L.FeatureGroup().addTo(map);
@@ -28,6 +41,18 @@ let autoRouteIndex = -1;
 if (typeof ORS_API_KEY === 'undefined' || !ORS_API_KEY) {
   alert('Missing OpenRouteService API key. Set ORS_API_KEY in config.js');
 }
+
+function setBasemap(name) {
+  if (currentBaseLayer) {
+    map.removeLayer(currentBaseLayer);
+  }
+  currentBaseLayer = baseLayers[name] || baseLayers.street;
+  currentBaseLayer.addTo(map);
+}
+
+document.getElementById('basemapSelect').addEventListener('change', e => {
+  setBasemap(e.target.value);
+});
 
 document.getElementById('walkPreference').addEventListener('change', e => {
   walkPreference = e.target.value;
