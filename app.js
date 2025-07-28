@@ -22,6 +22,18 @@ let watchId = null;
 let startCoords = null;
 const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjhhNWZmN2ZhZWIxZTRlNjA4YjA0NmE2ZGFhMWE5ZDY5IiwiaCI6Im11cm11cjY0In0=';
 
+// Automatically center map on user's current location if permission granted
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const coords = [pos.coords.latitude, pos.coords.longitude];
+    map.setView(coords, 15);
+    startCoords = coords;
+    L.marker(coords, {
+      icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
+    }).addTo(map);
+  }, err => console.log('Geolocation error:', err));
+}
+
 // Handle manual route drawing
 map.on(L.Draw.Event.CREATED, e => {
   if (plannedRoute) drawnItems.removeLayer(plannedRoute);

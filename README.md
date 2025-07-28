@@ -19,11 +19,14 @@ A PWA to plan and track dog walks with real-time GPS and manual route drawing.
 
 ## Usage
 
-1. Enter a start location and click **Set Start**.
-2. Input a desired distance in meters.
-3. Click **Plan Route for Me** to automatically create a circular walk.
+1. On page load the map attempts to center on your current location.
+   Allow geolocation access when prompted.
+2. Enter a start location and click **Set Start** if you want to override the
+   detected location.
+3. Input a desired distance in meters.
+4. Click **Plan Route for Me** to automatically create a circular walk.
    Set your OpenRouteService API key in `app.js`.
-4. Or use **Plan Walk (draw route)** to draw a route manually.
+5. Or use **Plan Walk (draw route)** to draw a route manually.
 
 ## TODO / Future Improvements
 
