@@ -19,6 +19,8 @@ let trackLine = null;
 let trackDistance = 0;
 let trackLatLngs = [];
 let watchId = null;
+let startCoords = null;
+const ORS_API_KEY = 'YOUR_API_KEY';
 
 // Handle manual route drawing
 map.on(L.Draw.Event.CREATED, e => {
@@ -47,6 +49,7 @@ document.getElementById('locateBtn').addEventListener('click', async () => {
   else coords = await geocode(q);
   if (!coords) { alert('Location not found'); return; }
   map.setView(coords, 15);
+  startCoords = coords;
   L.marker(coords, {
     icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
   }).addTo(map);
@@ -63,6 +66,14 @@ document.getElementById('startPlanBtn').addEventListener('click', () => {
   }
   // Start a new drawing session using Leaflet Draw
   new L.Draw.Polyline(map).enable();
+});
+
+// Auto-plan route using OpenRouteService
+document.getElementById('autoPlanBtn').addEventListener('click', async () => {
+  const dist = parseFloat(document.getElementById('walkDistance').value);
+  if (!startCoords) { alert('Set start location first'); return; }
+  if (!dist) { alert('Enter desired distance'); return; }
+  await autoPlanRoute(startCoords, dist);
 });
 
 // Start tracking actual walk
@@ -110,4 +121,45 @@ function updateStats() {
   document.getElementById('stats').textContent = txt;
 }
 
-// TODO: Auto‑generate route by distance requires server‑side logic or routing API - implement later
+// Generate a circular route automatically
+async function autoPlanRoute(start, targetMeters) {
+  const url = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson';
+  const requestRoute = async len => {
+    const body = {
+      coordinates: [[start[1], start[0]]],
+      options: { round_trip: { length: len } }
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': ORS_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('Routing request failed');
+    return res.json();
+  };
+
+  try {
+    let data = await requestRoute(targetMeters);
+    let feature = data.features[0];
+    let len = turf.length(feature, { units: 'meters' });
+    if (Math.abs(len - targetMeters) > 322) {
+      const adjust = targetMeters + (targetMeters - len);
+      data = await requestRoute(adjust);
+      feature = data.features[0];
+      len = turf.length(feature, { units: 'meters' });
+    }
+    if (plannedRoute) drawnItems.removeLayer(plannedRoute);
+    plannedRoute = L.geoJSON(feature).addTo(drawnItems);
+    plannedDistance = len;
+    updateStats();
+    map.fitBounds(plannedRoute.getBounds());
+  } catch (err) {
+    console.error(err);
+    alert('Could not auto-plan route');
+  }
+}
+
+// Auto-planning now available using OpenRouteService
