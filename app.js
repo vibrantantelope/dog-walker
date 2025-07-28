@@ -205,9 +205,17 @@ async function autoPlanRoute(start, targetMeters, preference) {
   const url = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson';
   console.log('Planning with preference:', preference);
   const requestRoute = async len => {
+    const points = preference === 'shortest' ? 3 : 5;
     const body = {
       coordinates: [[start[1], start[0]]],
-      options: { round_trip: { length: len } }
+      preference: preference === 'shortest' ? 'shortest' : 'recommended',
+      options: {
+        round_trip: {
+          length: len,
+          points
+        },
+        avoid_features: ['steps', 'fords']
+      }
     };
     const res = await fetch(url, {
       method: 'POST',
