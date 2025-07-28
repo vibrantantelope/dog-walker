@@ -207,7 +207,14 @@ async function autoPlanRoute(start, targetMeters, preference) {
   const requestRoute = async len => {
     const body = {
       coordinates: [[start[1], start[0]]],
-      options: { round_trip: { length: len } }
+      preference: preference === 'shortest' ? 'shortest' : 'fastest',
+      options: {
+        round_trip: {
+          length: len,
+          points: preference === 'shortest' ? 3 : 5
+        },
+        avoid_features: ['steps', 'ferries']
+      }
     };
     const res = await fetch(url, {
       method: 'POST',
@@ -224,6 +231,8 @@ async function autoPlanRoute(start, targetMeters, preference) {
   try {
     let data = await requestRoute(targetMeters);
     let feature = data.features[0];
+    // Simplify geometry a bit to reduce unnecessary turns
+    feature = turf.simplify(feature, { tolerance: 0.0005 });
     let len = turf.length(feature, { units: 'meters' });
     if (Math.abs(len - targetMeters) > 322) {
       const adjust = targetMeters + (targetMeters - len);
