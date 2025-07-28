@@ -81,6 +81,39 @@ body { font-family: 'Baloo 2', sans-serif; }
   color: #4B2E05;
 }
 
+/* Toggle button for mobile menu */
+#menuToggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #A0522D;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1100;
+  display: none; /* hidden on larger screens */
+}
+
+#controls.hidden {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  #menuToggle {
+    display: block;
+  }
+  #controls {
+    top: 50px;
+    right: 10px;
+    left: auto;
+    width: 80%;
+    max-width: 300px;
+    max-height: calc(100% - 60px);
+  }
+}
+
 /* Pulsating indicator for live tracking */
 .tracking-indicator {
   width: 16px;
