@@ -35,6 +35,7 @@ let watchId = null;
 let startCoords = null;
 let trackingIndicator = null;
 let dogMarker = null;
+const distanceOverlay = document.getElementById('distanceOverlay');
 let walkPreference = 'scenic';
 let autoRoutes = [];
 let autoRouteIndex = -1;
@@ -210,6 +211,10 @@ document.getElementById('startTrackBtn').addEventListener('click', () => {
     map.removeLayer(trackingIndicator);
     trackingIndicator = null;
   }
+  if (distanceOverlay) {
+    distanceOverlay.classList.remove('hidden');
+    distanceOverlay.textContent = '';
+  }
   document.getElementById('stopTrackBtn').disabled = false;
   document.getElementById('pauseTrackBtn').disabled = false;
   document.getElementById('resumeTrackBtn').disabled = true;
@@ -228,6 +233,7 @@ document.getElementById('stopTrackBtn').addEventListener('click', () => {
     map.removeLayer(trackingIndicator);
     trackingIndicator = null;
   }
+  if (distanceOverlay) distanceOverlay.classList.add('hidden');
   document.getElementById('stopTrackBtn').disabled = true;
   document.getElementById('pauseTrackBtn').disabled = true;
   document.getElementById('resumeTrackBtn').disabled = true;
@@ -290,6 +296,7 @@ document.getElementById('clearWalkBtn').addEventListener('click', () => {
     map.removeLayer(trackingIndicator);
     trackingIndicator = null;
   }
+  if (distanceOverlay) distanceOverlay.classList.add('hidden');
   plannedDistance = 0;
   trackDistance = 0;
   trackLatLngs = [];
@@ -343,6 +350,9 @@ function updateStats() {
     txt += ` | Pref: ${walkPreference}`;
   }
   document.getElementById('stats').textContent = txt;
+  if (distanceOverlay && !distanceOverlay.classList.contains('hidden')) {
+    distanceOverlay.textContent = `${tracked} ${unit}`;
+  }
 }
 
 // Generate a circular route automatically

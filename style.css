@@ -100,6 +100,10 @@ body { font-family: 'Baloo 2', sans-serif; }
   display: none;
 }
 
+.hidden {
+  display: none;
+}
+
 @media (max-width: 600px) {
   #menuToggle {
     display: block;
@@ -122,6 +126,19 @@ body { font-family: 'Baloo 2', sans-serif; }
   border-radius: 50%;
   box-shadow: 0 0 0 rgba(160, 82, 45, 0.7);
   animation: pulse 1s infinite;
+}
+
+#distanceOverlay {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 1200;
 }
 
 @keyframes pulse {
