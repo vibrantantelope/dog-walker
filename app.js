@@ -34,6 +34,7 @@ let trackLatLngs = [];
 let watchId = null;
 let startCoords = null;
 let trackingIndicator = null;
+let dogMarker = null;
 const distanceOverlay = document.getElementById('distanceOverlay');
 let walkPreference = 'scenic';
 let autoRoutes = [];
@@ -112,9 +113,13 @@ if (navigator.geolocation) {
     const coords = [pos.coords.latitude, pos.coords.longitude];
     map.setView(coords, 15);
     startCoords = coords;
-    L.marker(coords, {
-      icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
-    }).addTo(map);
+    if (!dogMarker) {
+      dogMarker = L.marker(coords, {
+        icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
+      }).addTo(map);
+    } else {
+      dogMarker.setLatLng(coords);
+    }
   }, err => console.log('Geolocation error:', err));
 }
 
@@ -146,9 +151,13 @@ document.getElementById('locateBtn').addEventListener('click', async () => {
   if (!coords) { alert('Location not found'); return; }
   map.setView(coords, 15);
   startCoords = coords;
-  L.marker(coords, {
-    icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
-  }).addTo(map);
+  if (!dogMarker) {
+    dogMarker = L.marker(coords, {
+      icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', iconSize: [32,32] })
+    }).addTo(map);
+  } else {
+    dogMarker.setLatLng(coords);
+  }
 });
 
 // Begin planning a walk by drawing a polyline
@@ -314,6 +323,9 @@ function onPosition(pos) {
     }).addTo(map);
   } else {
     trackingIndicator.setLatLng(latlng);
+  }
+  if (dogMarker) {
+    dogMarker.setLatLng(latlng);
   }
   trackLatLngs.push(latlng);
   trackLine.setLatLngs(trackLatLngs);
