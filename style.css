@@ -116,6 +116,13 @@ body { font-family: 'Baloo 2', sans-serif; }
     max-width: 300px;
     max-height: calc(100% - 60px);
   }
+  #distanceOverlay {
+    width: 100%;
+    left: 0;
+    transform: none;
+    text-align: center;
+    font-size: 1.25em;
+  }
 }
 
 /* Pulsating indicator for live tracking */
@@ -129,7 +136,7 @@ body { font-family: 'Baloo 2', sans-serif; }
 }
 
 #distanceOverlay {
-  position: absolute;
+  position: fixed;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
@@ -138,7 +145,11 @@ body { font-family: 'Baloo 2', sans-serif; }
   padding: 6px 10px;
   border-radius: 4px;
   font-weight: bold;
-  z-index: 1200;
+  z-index: 1300;
+  font-size: 1.1em;
+  min-width: 150px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes pulse {
