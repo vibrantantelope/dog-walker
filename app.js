@@ -39,6 +39,31 @@ const distanceOverlay = document.getElementById('distanceOverlay');
 let walkPreference = 'scenic';
 let autoRoutes = [];
 let autoRouteIndex = -1;
+// Screen wake lock to keep tracking active
+let wakeLock = null;
+
+async function acquireWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch (err) {
+      console.error('Wake Lock error:', err);
+    }
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (wakeLock && document.visibilityState === 'visible') {
+    acquireWakeLock();
+  }
+});
 
 if (typeof ORS_API_KEY === 'undefined' || !ORS_API_KEY) {
   alert('Missing OpenRouteService API key. Set ORS_API_KEY in config.js');
@@ -203,6 +228,7 @@ document.getElementById('nextRouteBtn').addEventListener('click', () => {
 // Start tracking actual walk
 document.getElementById('startTrackBtn').addEventListener('click', () => {
   if (!navigator.geolocation) return alert('Geolocation not supported.');
+  acquireWakeLock();
   trackDistance = 0;
   trackLatLngs = [];
   if (trackLine) map.removeLayer(trackLine);
@@ -229,6 +255,7 @@ document.getElementById('startTrackBtn').addEventListener('click', () => {
 // Stop tracking
 document.getElementById('stopTrackBtn').addEventListener('click', () => {
   if (watchId) navigator.geolocation.clearWatch(watchId);
+  releaseWakeLock();
   if (trackingIndicator) {
     map.removeLayer(trackingIndicator);
     trackingIndicator = null;
@@ -304,6 +331,7 @@ document.getElementById('clearWalkBtn').addEventListener('click', () => {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
+  releaseWakeLock();
   autoRoutes = [];
   autoRouteIndex = -1;
   updateNavButtons();
