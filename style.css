@@ -7,21 +7,21 @@ body { font-family: 'Baloo 2', sans-serif; }
 /* Control panel styling */
 #controls {
   position: absolute;
-  top: 10px;
+  bottom: 60px;
+  left: 10px;
   right: 10px;
-  left: auto;
   transform: none;
   background: rgba(210,180,140,0.9); /* tan */
   padding: 10px;
   border-radius: 8px;
   font-family: 'Baloo 2', sans-serif;
   z-index: 1000;
-  width: 250px;
+  width: calc(100% - 20px);
   display: flex;
   flex-direction: column;
   align-items: stretch;
   overflow-y: auto;
-  max-height: calc(100% - 20px);
+  max-height: calc(60% - 20px);
 }
 #controls input,
 #controls button,
@@ -84,7 +84,7 @@ body { font-family: 'Baloo 2', sans-serif; }
 /* Toggle button for mobile menu */
 #menuToggle {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
   background: #A0522D;
   color: white;
@@ -93,7 +93,7 @@ body { font-family: 'Baloo 2', sans-serif; }
   border-radius: 4px;
   cursor: pointer;
   z-index: 1100;
-  display: none; /* hidden on larger screens */
+  display: block;
 }
 
 #controls.hidden {
@@ -104,24 +104,25 @@ body { font-family: 'Baloo 2', sans-serif; }
   display: none;
 }
 
-@media (max-width: 600px) {
+@media (min-width: 600px) {
   #menuToggle {
-    display: block;
+    display: none;
   }
   #controls {
-    top: 50px;
+    top: 10px;
     right: 10px;
     left: auto;
-    width: 80%;
-    max-width: 300px;
-    max-height: calc(100% - 60px);
+    bottom: auto;
+    width: 250px;
+    max-width: none;
+    max-height: calc(100% - 20px);
   }
   #distanceOverlay {
-    width: 100%;
-    left: 0;
-    transform: none;
+    width: auto;
+    left: 50%;
+    transform: translateX(-50%);
     text-align: center;
-    font-size: 1.25em;
+    font-size: 1.1em;
   }
 }
 
