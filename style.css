@@ -121,6 +121,7 @@ body { font-family: 'Baloo 2', sans-serif; }
     width: auto;
     left: 50%;
     transform: translateX(-50%);
+    bottom: 10px;
     text-align: center;
     font-size: 1.1em;
   }
@@ -138,7 +139,7 @@ body { font-family: 'Baloo 2', sans-serif; }
 
 #distanceOverlay {
   position: fixed;
-  top: 10px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.6);
