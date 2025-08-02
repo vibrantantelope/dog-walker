@@ -38,6 +38,20 @@ A PWA to plan and track dog walks with real-time GPS and manual route drawing.
 10. Use **Clear** to remove any planned or tracked route and reset the stats.
 11. On small screens tap the **☰** button to show or hide the controls.
 
+## OpenRouteService API Key
+
+Manually drawn routes are snapped to the nearest streets using the [OpenRouteService](https://openrouteservice.org/) Directions API. A valid `ORS_API_KEY` must be provided in `config.js` for this to work.
+
+### Getting a key
+
+1. Sign up for a free account at [openrouteservice.org](https://openrouteservice.org/).
+2. Create a new API key from your dashboard.
+3. Copy `config.js.example` to `config.js` if you haven't already.
+4. Edit `config.js` and set:
+   ```javascript
+   const ORS_API_KEY = 'YOUR_KEY_HERE';
+   ```
+
 ## TODO / Future Improvements
 
 * Persist walk history in LocalStorage or a backend.
