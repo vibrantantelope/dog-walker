@@ -148,14 +148,55 @@ if (navigator.geolocation) {
   }, err => console.log('Geolocation error:', err));
 }
 
-// Handle manual route drawing
-map.on(L.Draw.Event.CREATED, e => {
+// Handle manual route drawing with route matching
+map.on(L.Draw.Event.CREATED, async e => {
   if (plannedRoute) drawnItems.removeLayer(plannedRoute);
-  plannedRoute = e.layer;
-  drawnItems.addLayer(plannedRoute);
-  // Measure in meters
-  plannedDistance = turf.length(plannedRoute.toGeoJSON(), { units: 'meters' });
-  updateStats();
+  const freehand = e.layer;
+  drawnItems.addLayer(freehand);
+
+  // Collect [lng, lat] coordinates
+  let coords = freehand.getLatLngs().map(ll => [ll.lng, ll.lat]);
+
+  // Down-sample if over ~50 points
+  if (coords.length > 50) {
+    const step = Math.ceil(coords.length / 50);
+    const sampled = [];
+    for (let i = 0; i < coords.length; i += step) sampled.push(coords[i]);
+    const last = coords[coords.length - 1];
+    const lastSample = sampled[sampled.length - 1];
+    if (last[0] !== lastSample[0] || last[1] !== lastSample[1]) sampled.push(last);
+    coords = sampled;
+  }
+
+  try {
+    const res = await fetch(
+      'https://api.openrouteservice.org/v2/directions/foot-walking/geojson',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: ORS_API_KEY
+        },
+        body: JSON.stringify({ coordinates: coords })
+      }
+    );
+    if (!res.ok) throw new Error('routing failed');
+    const data = await res.json();
+    const feature = data.features && data.features[0];
+    if (!feature) throw new Error('no route');
+
+    drawnItems.removeLayer(freehand);
+    plannedRoute = L.geoJSON(feature).addTo(drawnItems);
+    plannedDistance = turf.length(feature, { units: 'meters' });
+    updateStats();
+    map.fitBounds(plannedRoute.getBounds());
+  } catch (err) {
+    console.error('Route matching error:', err);
+    plannedRoute = freehand;
+    plannedDistance = turf.length(plannedRoute.toGeoJSON(), { units: 'meters' });
+    updateStats();
+    alert('Could not match route; using drawn line.');
+  }
 });
 
 // Geocoding (Nominatim)
